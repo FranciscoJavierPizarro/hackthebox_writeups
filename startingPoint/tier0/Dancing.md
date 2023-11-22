@@ -1,4 +1,4 @@
-#easy
+#veryeasy 
 #smb
 
 Firstly, we start by opening a VPN connection and launching the VM on HTB.

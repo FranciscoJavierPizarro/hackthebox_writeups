@@ -1,11 +1,11 @@
+# Sequel
+#startingpoint 
 #veryeasy 
 #sql 
 #mariadb
 
-**Reconnaissance**
+### Reconnaissance
 The first step in any penetration test is to gather information about the target system. In this case, we are trying to identify open ports and services on the target host with the IP address 10.129.193.6. We use the `nmap -p- -sV $TARGET` command with the `-p-` option to scan all possible TCP ports and the `-sV` option to display service version information. The output shows that there are 65534 closed tcp ports (connection refused) and one open port, `mysql`, which is running a MySQL database service.
-
-
 ```
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-11-21 14:27 CET
 Nmap scan report for 10.129.87.79
@@ -15,10 +15,9 @@ PORT     STATE SERVICE VERSION
 3306/tcp open  mysql?
 ```
 
-**MYSQL**
+### MYSQL
 Since we found that there is a mysql database running we perform a research to check if there is any default credentials.
 It seems that the default user could be root, so we try to access by running 
-
 
 We try to connect to the MySQL database service using the default user (`root`) and the target IP address, the command looks like `mysql -u root -h $TARGET`. The output shows that the host is up and running. Once in we are able to list the databases using the `SHOW DATABASES;` command. We observe that there are four databases: `htb`, `information_schema`, `mysql`, and `performance_schema`
 ```

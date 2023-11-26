@@ -1,9 +1,10 @@
+# Fawn
+#startingpoint 
 #veryeasy 
 #ftp
 
 Firstly, we start by opening a VPN connection and launching the VM on HTB.
-
-**Reconnaissance**
+### Reconnaissance
 The first step in any penetration test is to gather information about the target system. In this case, we are trying to identify open ports and services on the target host with the IP address 10.129.193.47. We use the `nmap -p- -sV $TARGET` command with the `-p-` option to scan all possible TCP ports and the `-sV` option to display service version information. The output shows that there is one open port, TCP port 21, which is running a ftp service.
 ```
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-11-16 11:24 CET
@@ -14,9 +15,7 @@ PORT   STATE SERVICE VERSION
 21/tcp open  ftp     vsftpd 3.0.3
 Service Info: OS: Unix
 ```
-
-
-**FTP Protocol**
+### FTP Protocol
 Since we found an open port, we try to connect to it using the `ftp` command. The system does not ask for credentials when we attempt to connect as anonymous. This suggests that the FTP service is not secure and we can try to exploit it further.
 ```
 ftp $TARGET

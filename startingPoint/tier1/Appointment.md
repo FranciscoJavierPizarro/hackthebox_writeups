@@ -1,9 +1,10 @@
+# Appointment
+#startingpoint 
 #veryeasy 
 #web 
 #sqlinjection 
 
-
-**Reconnaissance**
+### Reconnaissance
 The recon phase involves gathering information about the target to identify potential vulnerabilities. In this case, we used the Nmap command `nmap -p- -sV $TARGET` to perform a port scan of the target IP address. The output shows that the host is up and running, with 65534 closed tcp ports (conn-refused). The open ports include port 80, which is commonly used for HTTP traffic.
 
 ```
@@ -14,8 +15,7 @@ Not shown: 65534 closed tcp ports (conn-refused)
 PORT   STATE SERVICE VERSION
 80/tcp open  http    Apache httpd 2.4.38 ((Debian))
 ```
-
-**Exploring the website**
+### Exploring the website
 At first the web seems quite simple having just a login panel. We then performed a web scan using the command `gobuster dir -u $TARGET -w /usr/share/wordlists/dirbuster/directory-list-1.0.txt` to identify potential directories and files on the target system. The command uses the `dirbuster` wordlist to find directory listings. The output shows the results of the web scan, including the URL, method, threads, wordlist, negative status codes, user agent, and timeout.
 ```
 ===============================================================

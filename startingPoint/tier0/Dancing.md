@@ -1,9 +1,11 @@
+# Dancing
+#startingpoint
 #veryeasy 
 #smb
 
 Firstly, we start by opening a VPN connection and launching the VM on HTB.
 
-**Reconnaissance**
+### Reconnaissance
 The first step in any penetration test is to gather information about the target system. In this case, we are trying to identify open ports and services on the target host with the IP address 10.129.193.6. We use the `nmap -p- -sV $TARGET` command with the `-p-` option to scan all possible TCP ports and the `-sV` option to display service version information. The output shows that there are some open ports, after performing a little of research we realize that this ports corresponds to a machine which is likely to be running a SMB service.
 
 ```
@@ -26,8 +28,7 @@ PORT      STATE SERVICE       VERSION
 Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
 
 ```
-
-**SMB Protocol**
+### SMB Protocol
 
 First of all we need to see all the shares that are inside the SMB server so we run `smbclient -L $TARGET`
 ```

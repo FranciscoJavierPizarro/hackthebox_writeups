@@ -1,8 +1,10 @@
- #veryeasy 
- #ftp 
- #web 
+# Crocodile
+#startingpoint 
+#veryeasy 
+#ftp 
+#web 
 
-**Reconnaissance**
+### Reconnaissance
 The `nmap -p- -sV -sC $TARGET` command was used to scan the target host for open ports and services. Nmap is a powerful tool for network exploration and security auditing. In this case, we used the `-p-` option to specify that we want to scan the host for both TCP and UDP ports. The `-sV` option tells nmap to perform a version detection scan, while the `-sC` option tells it to perform a connect scan. The output shows us that the host is running an FTP server (vsftpd) and an Apache web server (Apache httpd). We also see that there are two files in the FTP server's root directory: `allowed.userlist` and `allowed.userlist.passwd`.
 ```
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-11-21 14:45 CET
@@ -36,7 +38,7 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 235.87 seconds
 ```
 
-**FTP**
+### FTP
 The `ftp $target` command was used to connect to the FTP server and list its contents. We saw two files in the directory: `allowed.userlist` and `allowed.userlist.passwd`. The `get` command was used to download both files, which contained a list of usernames and their corresponding passwords. To enter without a password we use the username `anonymous`
 ```
 ftp> ls
@@ -63,7 +65,7 @@ local: allowed.userlist.passwd remote: allowed.userlist.passwd
 
 Based on the information we gathered from the FTP server, we can try to use the credentials we obtained to see if we can gain elevated privileges on the FTP server. After testing it we confirm that we cant, so now we need to explore other paths.
 
-**Exploring the website**
+### Exploring the website
 We enter the website using the following URL  `http://10.129.133.75/`, once in at first sight we don't see nothing relevant, so now we perform a directory enumeration with `gobuster dir -u $TARGET -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt -x php,html`. The output shows us a list of files and directories on the target host, including the `index.html`, `login.php`, and `config.php` files.
 
 ```

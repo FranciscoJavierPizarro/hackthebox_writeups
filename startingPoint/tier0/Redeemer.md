@@ -1,9 +1,10 @@
+# Redeemer
+#startingpoint 
 #veryeasy 
 #redis
 
 Firstly, we start by opening a VPN connection and launching the VM on HTB.
-
-**Reconnaissance**
+### Reconnaissance
 The first step in any penetration test is to gather information about the target system. In this case, we are trying to identify open ports and services on the target host with the IP address 10.129.193.6. We use the `nmap -p- -sV $TARGET` command with the `-p-` option to scan all possible TCP ports and the `-sV` option to display service version information. The output shows that there is one open port,  port 6379 running redis service in the version 5.07.
 
 ```
@@ -14,7 +15,7 @@ PORT     STATE SERVICE VERSION
 6379/tcp open  redis   Redis key-value store 5.0.7
 ```
 
-**Redis Protocol**
+### Redis Protocol
 Since we found redis running in a open port, we try to connect to it using the `redis-cli -h $TARGET` command. We enter the target host's IP address. Once we are in the redis terminal we can run `info` to retrieve various information about the Redis instance, including its version, uptime, memory usage, and configuration file path. The output shows that the Redis instance is running version 5.0.7, has been running for 730 seconds (or approximately 12 minutes), uses 859624 bytes of memory (with a peak usage of 859624 bytes), and has a configuration file located at `/etc/redis/redis.conf`. Also it shows that there is a keyspace on index 0 which contains 4 keys.
 
 ```

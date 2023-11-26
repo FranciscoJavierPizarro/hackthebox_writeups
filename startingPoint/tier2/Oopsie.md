@@ -1,3 +1,5 @@
+# Oopsie
+#startingpoint 
 #veryeasy 
 #web 
 #privescalation 
@@ -6,8 +8,7 @@
 #suid
 #php 
 
-**Reconnaissance**
-
+### Reconnaissance
 The first step in any penetration test is reconnaissance, where we gather information about the target application and its environment. In this case, we used `nmap -p-  $TARGET` to scan the target IP address and identify open ports and services. The output of the Nmap scan is shown below:
 ```
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-11-21 18:17 CET
@@ -19,9 +20,7 @@ PORT   STATE SERVICE
 80/tcp open  http
 ```
 From the Nmap output, we can see that the target application is running SSH and HTTP services. We also note that there are 65533 closed TCP ports, which suggests that the target application may have additional services or applications running on those ports that are not visible to us.
-
-
-**Web Application Analysis**
+### Web Application Analysis
 
 Next, we analyzed the target web application using Burp Suite as a proxy to identify potential vulnerabilities. Even if at first sight the website seems pretty simple, in Burp Suite the sitemap allow us to see that there is a hidden login.
 
@@ -65,7 +64,7 @@ It will possibly be inside the /uploads directory so before triggering it we sta
 
 From the Burp Suite output, we can see that the target application is using a session ID in a cookie. We also note that the login form accepts both username and password input fields. Based on this information, we can infer that the target application may be vulnerable to a cross-site scripting (XSS) attack.
 
-**Lateral movement**
+### Lateral movement
 
 As we are using the user www-data which doesn't have privileges, we want to perform a escalation or a lateral movement.
 To do so, we start by getting all the available information we can with this user. As the www-data we have permissions on the webcontents files/folders so we go to the default folder for web contents `/var/www/html/` then also we go inside the login folder `/cdn-cgi/login` and inside we perform a search of any kind of password `cat * | grep -i passw*`
@@ -118,7 +117,7 @@ $conn = mysqli_connect('localhost','robert','M3g4C0rpUs3r!','garage');
 ```
 We test again to login into robert account with the new password and this time we achieve it.
 
-**Privilege escalation**
+### Privilege escalation
 With our brand new account we start checking if we are a sudoer and our ids by running `sudo -l` and `id`
 
 ```
@@ -126,7 +125,6 @@ With our brand new account we start checking if we are a sudoer and our ids by r
 
 Sorry, user robert may not run sudo on oopsie.
 ```
-
 We are not sudoers
 
 ```

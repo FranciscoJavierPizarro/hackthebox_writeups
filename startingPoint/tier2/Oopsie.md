@@ -2,10 +2,7 @@
 #startingpoint 
 #veryeasy 
 #web 
-#privescalation 
-#latmovement
 #cookie
-#suid
 #php 
 
 ### Reconnaissance

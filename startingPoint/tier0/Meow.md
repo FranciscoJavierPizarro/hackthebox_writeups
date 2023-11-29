@@ -15,7 +15,7 @@ PORT   STATE SERVICE VERSION
 23/tcp open  telnet  Linux telnetd
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
-### Telnet Protocol
+### Telnet Service
 Since we found an open port, we try to connect to it using the `telnet` command. We enter the target host's IP address. However, we encounter a problem - the system does not ask for credentials when we attempt to connect as root. This suggests that the telnet service is not secure and we can try to exploit it further.
 ```
 telnet $TARGET

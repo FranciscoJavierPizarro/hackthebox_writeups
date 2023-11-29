@@ -38,7 +38,7 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 235.87 seconds
 ```
 
-### FTP
+### FTP Service
 The `ftp $target` command was used to connect to the FTP server and list its contents. We saw two files in the directory: `allowed.userlist` and `allowed.userlist.passwd`. The `get` command was used to download both files, which contained a list of usernames and their corresponding passwords. To enter without a password we use the username `anonymous`
 ```
 ftp> ls

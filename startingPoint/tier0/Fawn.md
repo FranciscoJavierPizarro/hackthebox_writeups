@@ -15,7 +15,7 @@ PORT   STATE SERVICE VERSION
 21/tcp open  ftp     vsftpd 3.0.3
 Service Info: OS: Unix
 ```
-### FTP Protocol
+### FTP Service
 Since we found an open port, we try to connect to it using the `ftp` command. The system does not ask for credentials when we attempt to connect as anonymous. This suggests that the FTP service is not secure and we can try to exploit it further.
 ```
 ftp $TARGET

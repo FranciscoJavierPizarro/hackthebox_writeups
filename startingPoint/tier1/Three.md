@@ -4,7 +4,6 @@
 #web
 #php
 #aws
-#subdomains
 
 ### Reconnaissance
 The first step in any penetration test is to gather information about the target system. In this case, we are trying to identify open ports and services on the target host with the IP address 10.129.193.6. We use the `nmap -p- -sV $TARGET` command with the `-p-` option to scan all possible TCP ports and the `-sV` option to display service version information. The output shows that there are two open ports,  port 22 running ssh service and also port 80 running a Apache webserver.
@@ -52,9 +51,7 @@ Found: gc._msdcs.thetoppers.htb (Status: 400) [Size: 306]
 ===============================================================
 ```
 We found a subdomain which returns a 404 error, so as we did before we add it to /etc/hosts, to do it we use this command `echo "${TARGET} s3.thetoppers.htb" | sudo tee -a /etc/hosts`
-
 ### AWS S3 website
-
 As we did before we enter the new website, it says that is running so we do a little of research to find that we are working with a AWS S3, this is used as a storage service, in this particular case as a webserver. To interact with it we need to use the `aws` terminal tool, once we have the tool installed we need to setup it so we use the following command.
 
 ```
@@ -65,13 +62,11 @@ Default region name [None]: tmp
 Default output format [None]: tmp
 ```
 Once the aws cli is setup we can perform commands, first of all we want to know all the S3 endpoints so we run `aws --endpoint=http://s3.thetoppers.htb s3 ls`
-
 ```
 2023-11-16 11:42:35 thetoppers.htb
 
 ```
 It seems that there is only one endpoint so now we are going to explore this one, to do so we run `aws --endpoint=http://s3.thetoppers.htb s3 ls s3://thetoppers.htb`
-
 ```
                           PRE images/
 2023-11-16 11:42:35          0 .htaccess

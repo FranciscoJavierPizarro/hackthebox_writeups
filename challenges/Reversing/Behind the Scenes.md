@@ -1,9 +1,8 @@
 # Behind the Scenes
 #challenge
+#easy 
 #reversing
 #binary
-#veryeasy 
-
 
 We are given a program.
 

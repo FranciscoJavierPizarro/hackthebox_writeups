@@ -1,7 +1,7 @@
 # Sequel
 #startingpoint 
 #veryeasy 
-#sql 
+#mysql 
 #mariadb
 
 ### Reconnaissance

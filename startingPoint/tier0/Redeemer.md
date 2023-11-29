@@ -14,8 +14,7 @@ Not shown: 65534 closed tcp ports (reset)
 PORT     STATE SERVICE VERSION
 6379/tcp open  redis   Redis key-value store 5.0.7
 ```
-
-### Redis Protocol
+### Redis Service
 Since we found redis running in a open port, we try to connect to it using the `redis-cli -h $TARGET` command. We enter the target host's IP address. Once we are in the redis terminal we can run `info` to retrieve various information about the Redis instance, including its version, uptime, memory usage, and configuration file path. The output shows that the Redis instance is running version 5.0.7, has been running for 730 seconds (or approximately 12 minutes), uses 859624 bytes of memory (with a peak usage of 859624 bytes), and has a configuration file located at `/etc/redis/redis.conf`. Also it shows that there is a keyspace on index 0 which contains 4 keys.
 
 ```

@@ -3,7 +3,7 @@
 #veryeasy 
 #web 
 #windows
-#hash
+#hashcrack 
 #winrm
 #php
 ### Reconnaissance
